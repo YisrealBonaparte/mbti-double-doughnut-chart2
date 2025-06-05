@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MBTI双重环形图</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .chart-container {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="doubleDoughnutChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('doubleDoughnutChart').getContext('2d');
+            
+            // MBTI数据
+            const typeData = {
+                labels: ['INFJ', 'INTP', 'INTJ', 'ISFP', 'ENFP', '其他'],
+                datasets: [
+                    {
+                        label: '类型出现频次',
+                        data: [28, 21, 16, 12, 10, 33],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)',
+                            'rgba(201, 203, 207, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(201, 203, 207, 1)'
+                        ],
+                        borderWidth: 1,
+                        // 设置内环半径 
+                        radius: '50%'
+                    },
+                    {
+                        label: '伴侣指名率',
+                        data: [4, 2, 3, 5, 4, 8],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(201, 203, 207, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(201, 203, 207, 1)'
+                        ],
+                        borderWidth: 1,
+                        // 设置外环半径 
+                        radius: '70%'
+                    }
+                ]
+            };
+            
+            // 创建双重环形图 
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: typeData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    // 设置中间空心部分 
+                    cutout: '40%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#333',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                },
+                                // 自定义图例标签，只显示人格类型 
+                                generateLabels: function(chart) {
+                                    const datasets = chart.data.datasets;
+                                    return chart.data.labels.map((label, i) => {
+                                        return {
+                                            text: label, // 仅显示人格类型
+                                            fillStyle: datasets[0].backgroundColor[i],
+                                            strokeStyle: datasets[0].borderColor[i],
+                                            lineWidth: 1,
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true, // 确保提示框启用[1,3](@ref)
+                            callbacks: {
+                                // 自定义提示框标签[1,3](@ref)
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label || '';
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.chart.data.datasets[context.datasetIndex].data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${datasetLabel}: ${label} - ${value}次 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    // 悬停效果设置[1,3,4](@ref)
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true,
+                        animationDuration: 200 // 悬停动画持续时间
+                    },
+                    // 设置透明背景 
+                    animation: {
+                        onComplete: function() {
+                            const chart = this.chart;
+                            chart.ctx.globalCompositeOperation = 'destination-over';
+                            chart.ctx.fillStyle = 'transparent';
+                            chart.ctx.fillRect(0, 0, chart.width, chart.height);
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
